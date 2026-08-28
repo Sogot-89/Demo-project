@@ -31,6 +31,10 @@ export interface ValidationResult {
   errors: Partial<Record<'email' | 'password', string>>;
 }
 
+export type NotificationChannel = 'email' | 'slack' | 'sms';
+
+export type NotificationSettings = Record<NotificationChannel, boolean>;
+
 export interface MetricSummary {
   id: string;
   label: string;
