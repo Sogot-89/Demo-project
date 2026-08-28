@@ -14,6 +14,19 @@ export const validatePassword = (password: string): string | null => {
   return null;
 };
 
+export const ACCEPTED_AVATAR_TYPES = ['image/jpeg', 'image/png'] as const;
+export const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+
+export const validateAvatarFile = (file: File): string | null => {
+  if (!ACCEPTED_AVATAR_TYPES.includes(file.type as (typeof ACCEPTED_AVATAR_TYPES)[number])) {
+    return 'Avatar must be a JPG or PNG image';
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    return 'Avatar must be 5MB or smaller';
+  }
+  return null;
+};
+
 export const validateCredentials = (credentials: Credentials): ValidationResult => {
   const errors: ValidationResult['errors'] = {};
 

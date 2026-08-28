@@ -1,4 +1,13 @@
-import type { AuthResponse, Credentials } from '../types';
+import type { AuthResponse, AvatarUploadResponse, Credentials } from '../types';
+import { validateAvatarFile } from './validators';
+
+const readAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('Could not read the selected file'));
+    reader.readAsDataURL(file);
+  });
 
 /**
  * Mock authentication endpoint. Resolves for any valid-looking credentials
@@ -22,4 +31,20 @@ export const authApi = {
         });
       }, 400);
     }),
+};
+
+/**
+ * Mock avatar upload endpoint. Rejects invalid files, otherwise echoes the
+ * image back as a data URL after a short delay to emulate network latency.
+ */
+export const profileApi = {
+  uploadAvatar: async (file: File): Promise<AvatarUploadResponse> => {
+    const validationError = validateAvatarFile(file);
+    if (validationError) {
+      throw new Error(validationError);
+    }
+    const avatarUrl = await readAsDataUrl(file);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    return { avatarUrl };
+  },
 };

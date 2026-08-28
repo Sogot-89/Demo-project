@@ -2,6 +2,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string;
+}
+
+export interface AvatarUploadResponse {
+  avatarUrl: string;
 }
 
 export interface AuthResponse {
@@ -24,6 +29,7 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   login: (credentials: Credentials) => Promise<void>;
   logout: () => void;
+  updateAvatar: (file: File) => Promise<void>;
 }
 
 export interface ValidationResult {

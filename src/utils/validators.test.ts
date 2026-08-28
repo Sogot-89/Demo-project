@@ -1,4 +1,16 @@
-import { validateCredentials, validateEmail, validatePassword } from './validators';
+import {
+  MAX_AVATAR_BYTES,
+  validateAvatarFile,
+  validateCredentials,
+  validateEmail,
+  validatePassword,
+} from './validators';
+
+const fileOfSize = (bytes: number, type: string): File => {
+  const file = new File(['x'], 'avatar', { type });
+  Object.defineProperty(file, 'size', { value: bytes });
+  return file;
+};
 
 describe('validateEmail', () => {
   it('rejects an empty value', () => {
@@ -25,6 +37,28 @@ describe('validatePassword', () => {
 
   it('accepts an 8+ character password', () => {
     expect(validatePassword('supersecret')).toBeNull();
+  });
+});
+
+describe('validateAvatarFile', () => {
+  it('accepts a small JPG', () => {
+    expect(validateAvatarFile(fileOfSize(1024, 'image/jpeg'))).toBeNull();
+  });
+
+  it('accepts a small PNG', () => {
+    expect(validateAvatarFile(fileOfSize(1024, 'image/png'))).toBeNull();
+  });
+
+  it('rejects an unsupported type', () => {
+    expect(validateAvatarFile(fileOfSize(1024, 'image/gif'))).toBe(
+      'Avatar must be a JPG or PNG image',
+    );
+  });
+
+  it('rejects a file over 5MB', () => {
+    expect(validateAvatarFile(fileOfSize(MAX_AVATAR_BYTES + 1, 'image/png'))).toBe(
+      'Avatar must be 5MB or smaller',
+    );
   });
 });
 

@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { Profile } from './pages/Profile';
 import { NotFound } from './pages/NotFound';
 
 const Placeholder = ({ title }: { title: string }) => (
@@ -27,6 +28,7 @@ export const App = () => (
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="reports" element={<Placeholder title="Reports" />} />
         <Route path="settings" element={<Placeholder title="Settings" />} />
       </Route>
