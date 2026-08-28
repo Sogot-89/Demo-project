@@ -1,99 +1,155 @@
-# Claude Instructions: React, Playwright, Jest, Tailwind, Zustand, & TanStack Router
+# System Prompt Extensions: React Dashboard & Login (TypeScript)
 
-This document defines the architecture, coding standards, and testing rules for this React project. Follow these guidelines strictly.
+This document provides explicit context, tech stack rules, configuration baselines, and implementation guidelines for building and testing the React Dashboard and Login application.
 
-## 🏗️ Architecture & Project Structure
+---
 
-### Core Principles
+## Tech Stack
 
-- **Feature-Driven Architecture**: Group files by feature, not by technical type (e.g., group components, hooks, and tests for an "auth" feature together).
-- **File-Based Routing**: Use TanStack Router's directory structure for routing. Keep routes clean; delegate UI logic to feature components.
-- **Separation of Concerns**: Keep UI presentation separate from business logic. Use Zustand for global UI/application state, and custom hooks for local state or data fetching.
-- **Strict Type Safety**: Write comprehensive TypeScript types/interfaces for all data structures, store states, and API responses. Do not use `any`.
+*   **Framework:** React 19 (Vite + TypeScript)
+*   **Styling:** Tailwind CSS v4
+*   **State Management:** React Context API (AuthContext)
+*   **Testing (Unit/Component):** Jest, React Testing Library, ts-jest
+*   **Testing (E2E):** Playwright
+
+---
+
+## Architectural Principles & Layout
 
 ### Directory Layout
-
 ```text
 src/
-├── assets/          # Static assets (images, fonts)
-├── components/      # Global reusable UI components (Buttons, Inputs, Modals)
-├── config/          # Environment variables, constants, API clients
-├── features/        # Feature modules (Feature-driven)
-│   └── auth/
-│       ├── components/  # Feature-specific components
-│       ├── hooks/       # Feature-specific hooks
-│       ├── services/    # Feature-specific API calls
-│       └── index.ts     # Public API for the feature
-├── hooks/           # Global reusable React hooks
-├── routes/          # TanStack Router file-based routes directory
-│   ├── __root.tsx   # Root layout and global context providers
-│   ├── index.tsx    # Home route (/)
-│   └── auth.tsx     # Auth layout or route
-├── store/           # Global state management (Zustand)
-│   └── useUiStore.ts # Centralized slice-based or atomic Zustand stores
-├── utils/           # Global helper functions
-├── main.tsx         # Application entry point
-└── routeTree.gen.ts # Automatically generated TanStack route tree
+├── assets/         # Charts, images, static icons
+├── components/     # Reusable UI elements
+│   └── ui/         # Base UI components (Button, Input, Card)
+├── context/        # Auth state provider
+├── hooks/          # Custom hooks (useAuth, useDashboardData)
+├── layouts/        # DashboardLayout, AuthLayout
+├── pages/          # Login, Dashboard (Charts Overview)
+├── types/          # Global TypeScript interfaces
+└── utils/          # Helpers, validators, test-mocks
+```
+
+### Component Guidelines
+*   Write pure functional components using arrow functions.
+*   Enforce strict TypeScript definitions for all props and data contracts. Never use `any`.
+*   Separate business/data fetching logic from UI layers using custom hooks.
+*   Incorporate `data-testid` attributes on all interactive elements (inputs, buttons, cards) for resilient testing.
+
+---
+
+## Implementation Requirements
+
+### 1. Authentication Flow
+*   **Login Page:** Email and password inputs with real-time validation. 
+*   **Route Protection:** Use a wrapper component (`ProtectedRoute`) to check auth tokens. Divert unauthenticated requests to `/login`.
+*   **Session Management:** Synchronize token storage inside `localStorage`.
+
+### 2. Dashboard & Analytical Charts
+*   **Layout:** A collapsible, responsive sidebar navigation matched with a universal user profile header.
+*   **Data Presentation:** A responsive layout containing interactive operational metric summaries.
+*   **Charts:** Implement standard data visualization configurations (e.g., using safe lightweight charting wrappers or custom SVG layouts) tracking monthly performance trends, category distributions, and real-time event tables.
+
+---
+
+## Code Quality & Technical Rules
+
+*   **TypeScript:** Enforce `strict: true` inside `tsconfig.json`. Ensure all API payloads, chart datasets, and event responses map to explicit `interfaces`.
+*   **Tailwind CSS v4:** Utilize native utility classes exclusively. Structure elements using flexible layouts (`flex`, `grid`) configured with mobile-first breakpoints (`md:`, `lg:`).
+
+---
+
+## Configuration Reference Baselines
+
+### 1. Jest Configuration (`jest.config.ts`)
+```typescript
+import type { Config } from 'jest';
+
+const config: Config = {
+  preset: 'ts-jest',
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+  moduleNameMapper: {
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
+  },
+};
+
+export default config;
+```
+
+### 2. Playwright E2E Configuration (`playwright.config.ts`)
+```typescript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: 'http://localhost:5173',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+  ],
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+  },
+});
 ```
 
 ---
 
-## 🔧 State Management & Routing Rules
+## Testing Strategy
 
-### 🐻 Zustand (Global State)
+### Component & Unit Tests (Jest)
+*   Isolate and test form layout validation schemas (`utils/validators`).
+*   Mock authentication API contexts using `jest.fn()` wrappers to emulate pending, rejected, and resolved network flows.
+*   Assert chart container layout calculations by passing customized data fixtures.
 
-- **Atomic/Slice Pattern**: Split large stores into logical slices. Maintain a clear separation between domain data and UI state.
-- **Immutability**: Rely on Zustand's default immutable updates. Do not mutate state directly. Use Immer middleware if updating complex nested structures.
-- **Selector Usage**: Always use specific selectors when consuming state in components (e.g., `const user = useAuthStore((s) => s.user)`) to prevent unnecessary re-renders. Do not destructure the entire store object.
+### End-to-End User Journeys (Playwright)
+*   **Flow 1:** Verify automated login execution, valid session validation, and post-auth redirect triggers.
+*   **Flow 2:** Assert robust state protection rules by checking manual URL manipulation re-routing actions.
+*   **Flow 3:** Assert responsive layout integrity by scaling test runner viewports across standard mobile and desktop environments.
 
-### 🧭 TanStack Router (Routing)
 
-- **Type-Safe Navigation**: Always use the type-safe `<Link>` component or `useNavigate()` hook. Pass search parameters using the type-safe `search` property.
-- **Loaders for Data Fetching**: Use route `loader` functions to pre-fetch critical data before a route renders. Handle loading states via TanStack's built-in pending components.
-- **Error Boundaries**: Define `errorComponent` and `notFoundComponent` handlers at the route level to handle errors gracefully.
+## Git Conventions
 
----
+- **Branch naming**: `{initials}/{description}` (e.g., `jd/fix-login`)
+- **Commit format**: Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)
+- **PR titles**: Same as commit format
 
-## 🎨 Tailwind CSS Styles & UI
+## Common Commands
 
-- **Utility-First**: Use Tailwind utility classes directly in the components. Avoid custom CSS files or inline style tags.
-- **Component Extraction**: Extract repetitive Tailwind patterns into reusable React components, not via `@apply` in CSS files.
-- **Responsive Design**: Use mobile-first design. Write base classes for mobile, then layer `sm:`, `md:`, `lg:`, and `xl:` modifiers.
-- **Dynamic Classes**: Avoid dynamic string interpolation for Tailwind classes (e.g., `text-${color}-500`). Use full class names in ternary operators or lookups so the Tailwind compiler can discover them.
-- **Class Ordering**: Let the Prettier Tailwind plugin automatically sort classes. If manual, follow: Layout → Box Model → Typography → Backgrounds → Effects.
+```bash
+# Development
+npm run dev          # Start dev server
+npm test             # Run tests
+npm run lint         # Run linter
+npm run typecheck    # Check types
 
----
-
-## 🧪 Testing Strategy
-
-### 🃏 Jest & React Testing Library (Unit & Integration)
-
-- **File Naming**: Place tests in the same folder as the file being tested. Use `[name].test.tsx`.
-- **Testing Behavior**: Test what the user sees and interacts with, not implementation details (do not test internal component state or Zustand store implementation details).
-- **Queries**: Use `screen.getByRole` as the primary query choice. Avoid querying by container or implementation test IDs unless necessary.
-- **Mocking Stores**: Reset Zustand store states before each test run using a `beforeEach` block to ensure test isolation.
-
-### 🎭 Playwright (End-to-End Testing)
-
-- **File Naming**: Place E2E tests in a dedicated root-level `tests/` directory. Use `[name].spec.ts`.
-- **Locators**: Use user-facing attributes like `page.getByRole()` or `page.getByText()`. Use explicit `data-testid` attributes only when semantic queries are impossible.
-- **Router Navigation**: When asserting navigation, wait for the URL or specific layout elements to change to confirm TanStack Router transitions are complete.
-- **Isolation**: Ensure tests run in complete isolation. Avoid hardcoded `page.waitForTimeout()`.
-
----
-
-## 🧹 Code Quality, ESLint & Prettier
-
-### Code Style Rules
-
-- Use functional components with arrow syntax (`const MyComponent = () => {}`).
-- Destructure props directly in the component definition.
-- Always provide a unique, stable `key` prop when rendering lists (never use the array index).
-
-### ESLint & Prettier Enforcement
-
-- **Strict Type Safety**: ESLint must enforce `@typescript-eslint/no-explicit-any: "error"` and `@typescript-eslint/explicit-module-boundary-types: "off"`.
-- **Hooks Rules**: Strictly enforce React Hooks rules (`react-hooks/rules-of-hooks` and `react-hooks/exhaustive-deps`).
-- **Prettier Integration**: Run Prettier as an ESLint rule via `eslint-plugin-prettier`. Code formatting errors must register as build-breaking lint errors.
-- **Tailwind Sorting**: Enable `prettier-plugin-tailwindcss` to automatically organize utility class order on every file save.
-- **Import Sorting**: Enforce consistent import order using an ESLint sorting plugin (e.g., React/built-ins → Third-party libraries → Internal aliases `@/*` → Relative imports → Styles).
+# Git
+npm run commit       # Interactive commit
+gh pr create         # Create PR
+```

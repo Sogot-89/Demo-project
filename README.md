@@ -1,32 +1,54 @@
-# React + TypeScript + Vite
+# React Dashboard & Login
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React 19 + Vite + TypeScript app with an authenticated analytics dashboard, built to the
+architecture in [`CLAUDE.md`](./CLAUDE.md).
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 (Vite + TypeScript, `strict: true`)
+- Tailwind CSS v4 (native utilities via `@tailwindcss/vite`)
+- React Context API for auth state (`src/context/AuthContext.tsx`)
+- Jest + React Testing Library + ts-jest (unit/component)
+- Playwright (E2E)
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev            # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Any well-formed email/password (8+ chars) signs in against the mock API in
+`src/utils/api.ts`. Use `denied@example.com` to exercise the rejection path.
+
+## Scripts
+
+| Command             | Purpose                          |
+| ------------------- | -------------------------------- |
+| `npm run dev`       | Start the Vite dev server        |
+| `npm run build`     | Type-check and build for prod    |
+| `npm test`          | Jest unit/component tests        |
+| `npm run test:e2e`  | Playwright end-to-end tests      |
+| `npm run lint`      | ESLint                           |
+
+## Layout
+
+```
+src/
+├── assets/         # static icons
+├── components/     # UI + charts (ui/ has Button, Input, Card)
+├── context/        # AuthContext provider
+├── hooks/          # useAuth, useDashboardData
+├── layouts/        # AuthLayout, DashboardLayout
+├── pages/          # Login, Dashboard, NotFound
+├── types/          # global interfaces
+└── utils/          # validators, api mock, fixtures
+e2e/                # Playwright specs (auth, responsive)
+```
+
+## Testing
+
+- **Unit/component:** validators, `AuthProvider` (pending/resolved/rejected flows via
+  `jest.fn()`), the Login form, and chart layout math.
+- **E2E:** login + redirect, protected-route redirection on manual URL access, and
+  responsive layout across mobile/desktop viewports.

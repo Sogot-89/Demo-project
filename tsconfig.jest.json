@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es2022",
+    "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "commonjs",
+    "module": "CommonJS",
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
-    "jsx": "react-jsx",
-    "strict": true,
     "esModuleInterop": true,
+    "jsx": "react-jsx",
     "skipLibCheck": true,
+    "strict": true,
     "types": ["jest", "node", "@testing-library/jest-dom"],
-    "paths": { "@/*": ["./src/*"] },
-    "verbatimModuleSyntax": false,
-    "isolatedModules": true
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"]
+    }
   },
-  "include": ["src", "jest.setup.ts"]
+  "include": ["src"]
 }

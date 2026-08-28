@@ -2,4 +2,4 @@ dist
 coverage
 playwright-report
 test-results
-src/routeTree.gen.ts
+package-lock.json
