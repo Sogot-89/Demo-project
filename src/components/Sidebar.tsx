@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Overview', icon: '▣' },
   { to: '/dashboard/reports', label: 'Reports', icon: '▤' },
   { to: '/dashboard/settings', label: 'Settings', icon: '⚙' },
+  { to: '/dashboard/profile', label: 'Profile', icon: '☺' },
 ];
 
 export const Sidebar = ({ collapsed }: SidebarProps) => (

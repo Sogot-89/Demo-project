@@ -74,6 +74,32 @@ describe('AuthProvider', () => {
     await waitFor(() => expect(result.current.status).toBe('authenticated'));
   });
 
+  it('updates the user avatar via updateAvatar', async () => {
+    const loginFn = jest.fn().mockResolvedValue(resolved);
+    const uploadAvatarFn = jest.fn().mockResolvedValue({ avatarUrl: 'data:image/png;base64,AAA' });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <AuthProvider loginFn={loginFn} uploadAvatarFn={uploadAvatarFn}>
+        {children}
+      </AuthProvider>
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await result.current.login({ email: 'test@example.com', password: 'password1' });
+    });
+
+    const file = new File(['x'], 'avatar.png', { type: 'image/png' });
+    await act(async () => {
+      await result.current.updateAvatar(file);
+    });
+
+    expect(uploadAvatarFn).toHaveBeenCalledWith(file);
+    expect(result.current.user?.avatarUrl).toBe('data:image/png;base64,AAA');
+    expect(JSON.parse(localStorage.getItem('auth.user') ?? '{}').avatarUrl).toBe(
+      'data:image/png;base64,AAA',
+    );
+  });
+
   it('clears state on logout', async () => {
     const loginFn = jest.fn().mockResolvedValue(resolved);
     const { result } = renderHook(() => useAuth(), { wrapper: wrapperWith(loginFn) });

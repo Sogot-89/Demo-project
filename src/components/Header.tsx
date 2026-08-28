@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from './ui/Button';
+import { Avatar } from './ui/Avatar';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -20,15 +22,19 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
         ☰
       </button>
       <div className="flex items-center gap-3">
-        <div className="text-right">
-          <p className="text-sm font-medium text-slate-800" data-testid="profile-name">
-            {user?.name ?? 'Guest'}
-          </p>
-          <p className="text-xs text-slate-400">{user?.email}</p>
-        </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
-          {(user?.name ?? 'G').charAt(0).toUpperCase()}
-        </div>
+        <Link
+          to="/dashboard/profile"
+          data-testid="profile-link"
+          className="flex items-center gap-3 rounded-md p-1 hover:bg-slate-100"
+        >
+          <div className="text-right">
+            <p className="text-sm font-medium text-slate-800" data-testid="profile-name">
+              {user?.name ?? 'Guest'}
+            </p>
+            <p className="text-xs text-slate-400">{user?.email}</p>
+          </div>
+          <Avatar name={user?.name ?? 'Guest'} src={user?.avatarUrl} />
+        </Link>
         <Button variant="ghost" onClick={logout} data-testid="logout-button">
           Sign out
         </Button>

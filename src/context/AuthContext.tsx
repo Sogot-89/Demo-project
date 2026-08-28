@@ -1,7 +1,14 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthContextValue, AuthResponse, AuthStatus, Credentials, User } from '../types';
-import { authApi } from '../utils/api';
+import type {
+  AuthContextValue,
+  AuthResponse,
+  AuthStatus,
+  AvatarUploadResponse,
+  Credentials,
+  User,
+} from '../types';
+import { authApi, profileApi } from '../utils/api';
 
 const TOKEN_KEY = 'auth.token';
 const USER_KEY = 'auth.user';
@@ -11,6 +18,7 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 interface AuthProviderProps {
   children: ReactNode;
   loginFn?: (credentials: Credentials) => Promise<AuthResponse>;
+  uploadAvatarFn?: (file: File) => Promise<AvatarUploadResponse>;
 }
 
 const readStoredUser = (): User | null => {
@@ -22,7 +30,11 @@ const readStoredUser = (): User | null => {
   }
 };
 
-export const AuthProvider = ({ children, loginFn = authApi.login }: AuthProviderProps) => {
+export const AuthProvider = ({
+  children,
+  loginFn = authApi.login,
+  uploadAvatarFn = profileApi.uploadAvatar,
+}: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState<User | null>(() => readStoredUser());
   const [status, setStatus] = useState<AuthStatus>(() =>
@@ -60,6 +72,14 @@ export const AuthProvider = ({ children, loginFn = authApi.login }: AuthProvider
     [loginFn],
   );
 
+  const updateAvatar = useCallback(
+    async (file: File) => {
+      const { avatarUrl } = await uploadAvatarFn(file);
+      setUser((current) => (current ? { ...current, avatarUrl } : current));
+    },
+    [uploadAvatarFn],
+  );
+
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
@@ -76,8 +96,9 @@ export const AuthProvider = ({ children, loginFn = authApi.login }: AuthProvider
       isAuthenticated: Boolean(token),
       login,
       logout,
+      updateAvatar,
     }),
-    [user, token, status, error, login, logout],
+    [user, token, status, error, login, logout, updateAvatar],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
