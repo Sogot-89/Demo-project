@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { NotificationChannel, NotificationSettings } from '../types';
 import { getCookie, setCookie } from '../utils/cookies';
 
@@ -41,13 +41,18 @@ export const useNotificationSettings = (): UseNotificationSettings => {
   const [settings, setSettings] = useState<NotificationSettings>(() =>
     parseSettings(getCookie(NOTIFICATION_COOKIE)),
   );
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (!hydrated.current) {
+      hydrated.current = true;
+      return;
+    }
+    setCookie(NOTIFICATION_COOKIE, JSON.stringify(settings));
+  }, [settings]);
 
   const toggleChannel = useCallback((channel: NotificationChannel) => {
-    setSettings((current) => {
-      const next = { ...current, [channel]: !current[channel] };
-      setCookie(NOTIFICATION_COOKIE, JSON.stringify(next));
-      return next;
-    });
+    setSettings((current) => ({ ...current, [channel]: !current[channel] }));
   }, []);
 
   return { settings, channels: CHANNELS, toggleChannel };
